@@ -1,0 +1,8 @@
+.lsp
+.clj-kondo
+.vscode
+.calva
+.nrepl-port
+target
+
+input
