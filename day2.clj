@@ -1,7 +1,6 @@
 (ns day2
   (:require
-   [clojure.core :refer [slurp]]
-   [clojure.string :refer [split]]))
+   [common :refer [lines]]))
 
 (def score-of
   {"A X" (+ 3 1)
@@ -27,20 +26,20 @@
 
 (defn part1
   [filename]
-  (as-> filename n
-    (slurp n)
-    (split n #"\n")
-    (map score-of n)
-    (reduce + n)))
+  (->>
+   filename
+   (lines)
+   (map score-of)
+   (reduce +)))
 
 (defn part2
   [filename]
-  (as-> filename n
-    (slurp n)
-    (split n #"\n")
-    (map produce-result n)
-    (map score-of n)
-    (reduce + n)))
+  (->>
+   filename
+   (lines)
+   (map produce-result)
+   (map score-of)
+   (reduce +)))
 
 (comment
   (part1 "examples/day2.txt")

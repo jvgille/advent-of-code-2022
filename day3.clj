@@ -1,8 +1,7 @@
 (ns day3
   (:require
-   [clojure.core :refer [slurp]]
-   [clojure.string :refer [split-lines]]
-   [clojure.set]))
+   [clojure.set]
+   [common :refer [lines]]))
 
 (defn first-half
   [s]
@@ -27,8 +26,7 @@
   [filename]
   (->>
    filename
-   (slurp)
-   (split-lines)
+   (lines)
    (map misplaced-items)
    (map first)
    (map priority-of)
@@ -38,8 +36,7 @@
   [filename]
   (->>
    filename
-   (slurp)
-   (split-lines)
+   (lines)
    (partition 3)
    (map #(apply clojure.set/intersection (map set %1)))
    (map first)
