@@ -1,5 +1,11 @@
 (ns common 
-  (:require [clojure.string :refer [split-lines]]))
+  (:require [clojure.string :refer [split-lines]]
+            [clojure.test :refer [is]]))
+
+;; todo - how to use with list? lazyseq, cons, persistentlist
+(defn is=
+  [actual expected]
+  (is (= actual expected)))
 
 (defn lines
   "Reads given file and splits on newlines."

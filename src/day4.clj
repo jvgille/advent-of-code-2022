@@ -5,11 +5,11 @@
 (defn range-contained?
   "Determine if the range [a, b] fully contains the range [x, y]."
   [a b x y]
-  (and (>= x a) (<= y b)))
+  (<= a x y b))
 
 (defn inside?
   [a b x]
-  (and (>= x a) (<= x b)))
+  (<= a x b))
 
 (defn ranges-overlap?
   "Determine if the range [a, b] overlaps the range [x, y]."
