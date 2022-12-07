@@ -1,5 +1,6 @@
 (ns common 
-  (:require [clojure.string :refer [split-lines]]
+  (:require [clojure.pprint :refer [pprint]]
+            [clojure.string :refer [split-lines]]
             [clojure.test :refer [is]]))
 
 ;; todo - how to use with list? lazyseq, cons, persistentlist
@@ -30,3 +31,7 @@
    or nil if no item does."
   [pred coll]
   (first (keep-indexed #(if (pred %2) [%1 %2] nil) coll)))
+
+(defn pprint-spit
+  [filename content]
+  (spit filename (with-out-str (pprint content))))
