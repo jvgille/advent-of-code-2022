@@ -167,5 +167,24 @@ $ ls
 
 (comment
   (part1 example)
-  (part1 (slurp "input/day7.txt"))
+  (part1 (slurp "input/day7.txt")))
+
+(def ^:private total-space 70000000)
+(def ^:private free-space-required 30000000)
+
+(defn part2
+  [s]
+  (let [directory-sizes (count-directory-sizes (parse-filesizes s))
+        used-space (second (first (filter (fn [[dir]] (= dir "/")) directory-sizes)))
+        available-space (- total-space used-space)
+        missing-space (- free-space-required available-space)]
+    (->>
+     directory-sizes
+     (map second)
+     (filter #(< missing-space %))
+     (apply min))))
+
+(comment 
+  (part2 example)
+  (part2 (slurp "input/day7.txt")) 
   )
