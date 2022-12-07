@@ -24,3 +24,9 @@
    coll
    (partition-by pred)
    (filter #(not (and (= (count %1) 1) (pred (first %1)))))))
+
+(defn find-indexed
+  "Returns [index, item] for the first item in the collection which satisfies the predicate,
+   or nil if no item does."
+  [pred coll]
+  (first (keep-indexed #(if (pred %2) [%1 %2] nil) coll)))

@@ -1,5 +1,6 @@
 (ns day6
-  (:require [clojure.string]))
+  (:require [clojure.core :refer [distinct?]]
+            [common :refer [find-indexed]]))
 
 (def examples 
   ["mjqjpqmgbljsphdztnvjfqwrcgsmlb" 7 19
@@ -8,16 +9,13 @@
    "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg" 10 29
    "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw" 11 26])
 
-(defn all-unique?
-  [s]
-  (= (count (set s)) (count s)))
-
 (defn find-unique-substr
   [s len]
-  (loop [i 0]
-    (if (all-unique? (subs s i (+ i len)))
-      (+ i len)
-      (recur (+ i 1)))))
+  (->>
+   (partition len 1 s)
+   (find-indexed #(apply distinct? %))
+   (first)
+   (+ len)))
 
 (defn part1 [s] (find-unique-substr s 4))
 (defn part2 [s] (find-unique-substr s 14))
