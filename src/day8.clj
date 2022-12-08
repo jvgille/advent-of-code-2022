@@ -46,6 +46,18 @@
   [& ms]
   (map (fn [v] (map #(or (some identity %) false) (transpose v))) (transpose ms)))
 
+(defpure matrix-product
+  {[[[4 2 1]
+     [1 1 4]]
+    [[9 1 9]
+     [3 0 1]]
+    [[0 1 0]
+     [1 1 1]]] [[0 2 0] 
+                [3 0 4]]}
+  "Does pairwise multiplication of given boolean matrices."
+  [& ms]
+  (map (fn [v] (map #(apply * %) (transpose v))) (transpose ms)))
+
 (defpure visible-trees
   {[(parse-input example-input)] 
    [[true  true  true  true true]
@@ -81,22 +93,42 @@
    (filter identity)
    (count)))
 
+(defpure view-distance
+  {[[3 0 3 7 3]] [0 1 2 3 1]
+   [[2 5 5 1 2]] [0 1 1 1 2]
+   [[6 5 3 3 2]] [0 1 1 1 1]
+   [[3 3 5 4 9]] [0 1 2 1 4]
+   [[3 5 3 9 0]] [0 1 1 3 1]} 
+  "Given a list of trees, gives a list of how far each tree can see towards the
+   beginning of the list."
+  [trees]
+  (loop [result []
+         heightmap (apply vector (repeat 10 0))
+         [tree & rest] trees]
+    (if tree
+      (let [num-visible (heightmap tree)]
+        (recur
+         (conj result num-visible)
+         (into [] (map-indexed (fn [i v] (if (<= i tree) 1 (+ 1 v))) heightmap))
+         rest))
+      result)))
+
+(defpure part2
+  {[example-input] 8}
+  [s]
+  (->>
+   (let [i (parse-input s)]
+     [(map view-distance i)
+      (transpose (map view-distance (transpose i)))
+      (map reverse (map view-distance (map reverse i)))
+      (transpose (map reverse (map view-distance (map reverse (transpose i)))))])
+   (apply matrix-product)
+   (flatten)
+   (apply max)))
+
 (comment
   (part1 (slurp "input/day8.txt"))
-
-  (def m [[1 2 3] [4 5 6] [7 8 9]])
-  (map visible (parse-input example-input))
-  (transpose (map visible (transpose (parse-input example-input))))
-
-  m
-  (transpose m)
-  (map reverse m)
-  (map reverse (transpose m))
-
-  m
-  (transpose (transpose m))
-  (map reverse (map reverse m))
-  (transpose (map reverse (map reverse (transpose m))))
-)
+  (part2 (slurp "input/day8.txt"))
+  )
 
 (run-tests)
