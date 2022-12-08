@@ -39,35 +39,32 @@
   [filename content]
   (spit filename (with-out-str (pprint content))))
 
-(defn- filter-stack-trace! [^Throwable throwable]
+;; below derived from
+;; https://github.com/fredoverflow/clopad/blob/master/samples/defpure.clj
+
+(defn- filter-stack-trace! [^Throwable throwable ns-name]
   (->>
    (. throwable getStackTrace)
-   (filter (complement
-            #(let [className (. % getClassName)]
-               (or
-                (string/starts-with? className "clojure")
-                (string/starts-with? className "java")
-                (string/starts-with? className "nrepl")))))
+   (filter #(string/starts-with? (. % getClassName) ns-name))
    (into-array StackTraceElement)
    (. throwable setStackTrace))
   throwable)
 
-;; register-test and defpure from
-;; https://github.com/fredoverflow/clopad/blob/master/samples/defpure.clj
 (defn register-test [v inputs->output-map do-report]
-  (alter-meta! v assoc :test
-               #(doseq [[inputs output] inputs->output-map]
-                  (try
-                    (let [actual (apply @v inputs)]
-                      (do-report {:type     (if (= output actual) :pass :fail)
-                                  :message  (str "  inputs: " inputs)
-                                  :expected output
-                                  :actual   actual}))
-                    (catch Throwable throwable
-                      (do-report {:type     :error
-                                  :message  (str "  inputs: " inputs)
-                                  :expected output
-                                  :actual   (filter-stack-trace! throwable)}))))))
+  (let [ns-name (name (ns-name (:ns (meta v))))]
+    (alter-meta! v assoc :test
+                 #(doseq [[inputs output] inputs->output-map]
+                    (try
+                      (let [actual (apply @v inputs)]
+                        (do-report {:type     (if (= output actual) :pass :fail)
+                                    :message  (str "  inputs: " inputs)
+                                    :expected output
+                                    :actual   actual}))
+                      (catch Throwable throwable
+                        (do-report {:type     :error
+                                    :message  (str "  inputs: " inputs)
+                                    :expected output
+                                    :actual   (filter-stack-trace! throwable ns-name)})))))))
 
 (defmacro defpure
   "Defines a pure function, illustrated by an exemplary inputs->output map"

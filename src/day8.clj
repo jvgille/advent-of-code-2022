@@ -83,7 +83,7 @@
 
 (comment
   (part1 (slurp "input/day8.txt"))
-  
+
   (def m [[1 2 3] [4 5 6] [7 8 9]])
   (map visible (parse-input example-input))
   (transpose (map visible (transpose (parse-input example-input))))
@@ -97,6 +97,6 @@
   (transpose (transpose m))
   (map reverse (map reverse m))
   (transpose (map reverse (map reverse (transpose m))))
-  )
+)
 
 (run-tests)
