@@ -2,7 +2,7 @@
   (:require [clojure.string :as string]
             [clojure.test :refer [run-tests]]
             [defpure :refer [defpure]]
-            [matrix :refer [transpose matrix-or matrix-product]]))
+            [matrix :refer [transpose pairwise-or pairwise-product]]))
 
 (def ^:private example-input
   "30373
@@ -25,15 +25,17 @@
    (map (fn [line] (map #(Character/getNumericValue %) line)))))
 
 (defpure visible
-  {[[3 0 3 7 3]] '(true false false true false)
-   [[2 5 5 1 2]] '(true true false false false)
-   [[6 5 3 3 2]] '(true false false false false)
-   [[3 3 5 4 9]] '(true false true false true)
-   [[3 5 3 9 0]] '(true true false true false)}
+  {[[3 0 3 7 3]] [true false false true false]
+   [[2 5 5 1 2]] [true true false false false]
+   [[6 5 3 3 2]] [true false false false false]
+   [[3 3 5 4 9]] [true false true false true]
+   [[3 5 3 9 0]] [true true false true false]}
   "Determines which trees are visible along a given line."
   [trees]
-  (conj (map #(apply < %) (partition 2 1 (reductions #(max %1 %2) trees)))
-        true))
+  (into [true] 
+        (mapv #(apply < %) 
+              (partition 2 1 
+                         (reductions #(max %1 %2) trees)))))
 
 (defpure visible-trees
   {[(parse-input example-input)] 
@@ -45,15 +47,14 @@
   "Given matrix of trees of separate height, return a boolean matrix 
    of whether a tree is visible from outside the grid,"
   [m]
-  (let [lr m
-        rl (map reverse m)
+  (let [rl (map reverse m)
         td (transpose m)
-        dt (map reverse (transpose m))
-        lrv (map visible lr)
+        dt (map reverse td)
+        lrv (map visible m)
         rlv (map visible rl)
         tdv (map visible td)
         dtv (map visible dt)]
-    (matrix-or
+    (pairwise-or
      lrv
      (map reverse rlv)
      (transpose tdv)
@@ -94,12 +95,13 @@
   {[example-input] 8}
   [s]
   (->>
-   (let [i (parse-input s)]
-     [(map view-distance i)
-      (transpose (map view-distance (transpose i)))
-      (map reverse (map view-distance (map reverse i)))
-      (transpose (map reverse (map view-distance (map reverse (transpose i)))))])
-   (apply matrix-product)
+   (let [m (parse-input s)
+         t (transpose m)]
+     [(map view-distance m)
+      (transpose (map view-distance t))
+      (map reverse (map view-distance (map reverse m)))
+      (transpose (map reverse (map view-distance (map reverse t))))])
+   (apply pairwise-product)
    (flatten)
    (apply max)))
 
