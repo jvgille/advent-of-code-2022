@@ -1,7 +1,8 @@
 (ns day8
   (:require [clojure.string :as string]
             [clojure.test :refer [run-tests]]
-            [common :refer [defpure transpose]]))
+            [defpure :refer [defpure]]
+            [matrix :refer [transpose matrix-or matrix-product]]))
 
 (def ^:private example-input
   "30373
@@ -33,30 +34,6 @@
   [trees]
   (conj (map #(apply < %) (partition 2 1 (reductions #(max %1 %2) trees)))
         true))
-
-(defpure matrix-or
-  {[[[true false false]
-     [false false false]]
-    [[false false false]
-     [false true false]]
-    [[false false false]
-     [true false false]]] [[true false false]
-                           [true true false]]}
-  "Does pairwise or of given boolean matrices."
-  [& ms]
-  (map (fn [v] (map #(or (some identity %) false) (transpose v))) (transpose ms)))
-
-(defpure matrix-product
-  {[[[4 2 1]
-     [1 1 4]]
-    [[9 1 9]
-     [3 0 1]]
-    [[0 1 0]
-     [1 1 1]]] [[0 2 0] 
-                [3 0 4]]}
-  "Does pairwise multiplication of given boolean matrices."
-  [& ms]
-  (map (fn [v] (map #(apply * %) (transpose v))) (transpose ms)))
 
 (defpure visible-trees
   {[(parse-input example-input)] 
@@ -127,8 +104,10 @@
    (apply max)))
 
 (comment
-  (part1 (slurp "input/day8.txt"))
-  (part2 (slurp "input/day8.txt"))
+  (time 
+   (part1 (slurp "input/day8.txt")))
+  (time 
+   (part2 (slurp "input/day8.txt")))
   )
 
 (run-tests)
