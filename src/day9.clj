@@ -56,6 +56,14 @@ U 20")
   [x]
   (if (< x 0) (- x) x))
 
+(defn clamp
+  [x a b]
+  (min (max x a) b))
+
+(defn chessboard-difference
+  [a b]
+  (apply max (mapv abs (mapv - a b))))
+
 (defpure should-follow?
   {[[0 0] [0 0]] false ; head on tail
    [[1 0] [0 0]] false ; 1 square, same row
@@ -66,16 +74,22 @@ U 20")
    [[1 2] [0 0]] true  ; 2 square
    [[2 2] [0 0]] true  ; 2 square diagonal
    }
-  [[hx hy] [tx ty]]
-  (< 1
-     (max
-      (abs (- hx tx))
-      (abs (- hy ty)))))
+  [h t]
+  (< 1 (chessboard-difference h t)))
 
-(defn maybe-follow
-  [[h0 h1] t]
-  (if (should-follow? h1 t)
-    h0 t))
+(defpure maybe-follow
+  {[[0 0] [0 0]] [0 0]
+   [[1 0] [0 0]] [0 0]
+   [[2 0] [0 0]] [1 0]
+   [[2 1] [0 0]] [1 1]
+   [[2 2] [0 0]] [1 1]
+   [[1 2] [0 0]] [1 1]
+   [[0 2] [0 0]] [0 1]}
+  [h t]
+  (if (should-follow? h t)
+    (mapv + t
+          (mapv #(clamp % -1 1) (mapv - h t))) 
+    t))
 
 (defpure move-rope
   {[[[0 0] [0 0]] "U"] [[0 1] [0 0]]
@@ -86,10 +100,8 @@ U 20")
   "Move head in direction, tail follows."
   [[h t] d]
   (let [h1 (move-head h d)]
-    [h1 (maybe-follow [h h1] t)]))
+    [h1 (maybe-follow h1 t)]))
 
-;; maybe follow is wrong for longer rope
-;; no longer always follows in exactly same position
 (defpure move-long-rope
   {[[[0 0] [0 0]] "U"] [[0 1] [0 0]]
    [[[0 1] [0 0]] "R"] [[1 1] [0 0]]
@@ -100,10 +112,7 @@ U 20")
    }
   "Move head in direction. Rest of rope tail follows."
   [[h & ts] d]
-  (->>
-   ts
-   (reductions (fn [p t] [t (maybe-follow p t)]) [h (move-head h d)])
-   (mapv second)))
+  (reductions maybe-follow (move-head h d) ts))
 
 (defpure part1
   {[example-input] 13}
@@ -130,8 +139,11 @@ U 20")
    (count)))
 
 (comment 
-  (part2 example-input)
+  (part1 example-input)
   (part1 (slurp "input/day9.txt"))
+  (part2 example-input)
+  (part2 example-input-2)
+  (part2 (slurp "input/day9.txt"))
   )
 
 (run-tests)
