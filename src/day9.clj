@@ -2,7 +2,8 @@
   (:require 
    [clojure.string :as string]
    [clojure.test :refer [run-tests]]
-   [defpure :refer [defpure]]))
+   [defpure :refer [defpure]]
+   [common :refer [chessboard-difference clamp]]))
 
 (def ^:private example-input "R 4
 U 4
@@ -50,19 +51,6 @@ U 20")
     "D" [x (- y 1)]
     "R" [(+ x 1) y]
     "L" [(- x 1) y]))
-
-;; Weird, different version of clojure or something?
-(defn abs
-  [x]
-  (if (< x 0) (- x) x))
-
-(defn clamp
-  [x a b]
-  (min (max x a) b))
-
-(defn chessboard-difference
-  [a b]
-  (apply max (mapv abs (mapv - a b))))
 
 (defpure should-follow?
   {[[0 0] [0 0]] false ; head on tail

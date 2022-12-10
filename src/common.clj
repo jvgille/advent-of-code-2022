@@ -29,3 +29,16 @@
 (defn pprint-spit
   [filename content]
   (spit filename (with-out-str (pprint content))))
+
+;; Weird, different version of clojure or something?
+(defn abs
+  [x]
+  (if (< x 0) (- x) x))
+
+(defn clamp
+  [x a b]
+  (min (max x a) b))
+
+(defn chessboard-difference
+  [a b]
+  (apply max (mapv abs (mapv - a b))))
