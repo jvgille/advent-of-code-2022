@@ -61,17 +61,22 @@ Monkey 3:
   (mapv (comp #(Integer/parseInt %) second)
         (re-seq #"Test: divisible by (\d+)" s)))
 
-(defpure parse-true-throw
-  {[example-input] [2 2 1 0]}
+(defpure parse-throw
+  {[example-input] 
+   [{true 2
+     false 3}
+    {true 2
+     false 0}
+    {true 1
+     false 3}
+    {true 0
+     false 1}]}
   [s]
-  (mapv (comp #(Integer/parseInt %) second)
-        (re-seq #"If true: throw to monkey (\d+)" s)))
-
-(defpure parse-false-throw
-  {[example-input] [3 0 3 1]}
-  [s]
-  (mapv (comp #(Integer/parseInt %) second)
-        (re-seq #"If false: throw to monkey (\d+)" s)))
+  (->> 
+   (re-seq #"If (true|false): throw to monkey (\d+)" s)
+   (map (fn [[_ tf i]] [(read-string tf) (Integer/parseInt i)]))
+   (partition 2)
+   (mapv #(into {} %))))
 
 (defpure evaluate-operation
   {[5 [7 * 3]] 21
@@ -86,20 +91,35 @@ Monkey 3:
   (let [substitute #(if (= % "old") old %)]
     (op (substitute lhs) (substitute rhs))))
 
+(defn do-monkey
+  [current-items [i operation divisible-by throws]]
+  (reduce
+   (fn [items item]
+     (let [updated-item
+           (int
+            (Math/floor
+             (/ (evaluate-operation item operation) 3)))
+           throw-to
+           (throws
+            (= 0 (mod updated-item divisible-by)))]
+       (assoc items throw-to (conj (items throw-to) updated-item))))
+   (assoc current-items i [])
+   (current-items i)))
 
-;; (defpure do-round
-;;   {[]}
-;;   [operation divisible-by true-throw false-throw current-items]
-;;   )
-
+(defpure do-round
+  {[(parse-operations example-input)
+    (parse-divisible-by example-input)
+    (parse-throw example-input)
+    (parse-starting-items example-input)]
+   [[20 23 27 26] [2080 25 167 207 401 1046] [] []]}
+  [operations divisible-bys throws items]
+  (->>
+   (map vector operations divisible-bys throws)
+   (map-indexed #(apply vector %1 %2))
+   (reduce do-monkey items)))
 
 (comment
-  (parse-operations example-input)
-  (parse-starting-items example-input)
-  (parse-divisible-by example-input)
-  (parse-true-throw example-input)
-  (parse-false-throw example-input)
-
+ 
   )
 
 (run-tests)
