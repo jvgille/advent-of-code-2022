@@ -111,15 +111,38 @@ Monkey 3:
     (parse-divisible-by example-input)
     (parse-throw example-input)
     (parse-starting-items example-input)]
-   [[20 23 27 26] [2080 25 167 207 401 1046] [] []]}
+   [[[20 23 27 26] [2080 25 167 207 401 1046] [] []] '(2 4 3 5)]}
   [operations divisible-bys throws items]
-  (->>
-   (map vector operations divisible-bys throws)
-   (map-indexed #(apply vector %1 %2))
-   (reduce do-monkey items)))
+  (let [intermediary (->>
+             (map vector operations divisible-bys throws)
+             (map-indexed #(apply vector %1 %2))
+             (reductions do-monkey items) 
+             )]
+    [(last intermediary) (map-indexed #(count (%2 %1)) (drop-last intermediary))]))
+
+(defpure part1
+  {[example-input] 10605}
+  [s]
+  (let [f #(do-round
+            (parse-operations s)
+            (parse-divisible-by s)
+            (parse-throw s)
+            %)]
+    (->>
+     (reductions (fn [[state _] _] (f state))
+                 (f (parse-starting-items s))
+                 (repeat 20 nil))
+     (drop-last)
+     (map second)
+     (apply map +)
+     (sort >)
+     (take 2)
+     (reduce *))))
 
 (comment
- 
+  (part1 example-input)
+  (part1 (slurp "input/day11.txt"))
+
   )
 
 (run-tests)
