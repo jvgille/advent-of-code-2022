@@ -1,6 +1,7 @@
 (ns matrix 
   (:require [defpure :refer [defpure]]
-            [clojure.test :refer [run-tests]]))
+            [clojure.test :refer [run-tests]]
+            [clojure.string]))
 
 (defn transpose
   [m]
@@ -53,6 +54,18 @@
   "Does pairwise multiplication of given numeric matrices."
   [& ms]
   (apply pairwise * ms))
+
+(defn create
+  "Create a matrix of dimensions d0xd1 filled with value v."
+  [d0 d1 v]
+  (into [] (repeat d0 (into [] (repeat d1 v)))))
+
+(defn to-string
+  "Return a multiline string representation of the matrix."
+  ([m]
+   (to-string {true 1 false 0} m))
+  ([element-to-representation m]
+   (clojure.string/join "\n" (map #(clojure.string/join (map element-to-representation %)) m))))
 
 (comment 
   (run-tests)
