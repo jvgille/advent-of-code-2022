@@ -92,46 +92,49 @@ Monkey 3:
     (op (substitute lhs) (substitute rhs))))
 
 (defn do-monkey
-  [current-items [i operation divisible-by throws]]
-  (reduce
-   (fn [items item]
-     (let [updated-item
-           (int
-            (Math/floor
-             (/ (evaluate-operation item operation) 3)))
-           throw-to
-           (throws
-            (= 0 (mod updated-item divisible-by)))]
-       (assoc items throw-to (conj (items throw-to) updated-item))))
-   (assoc current-items i [])
-   (current-items i)))
+  [divide-by-3? total]
+  (fn [current-items [i operation divisible-by throws]]
+    (reduce
+     (fn [items item]
+       (let [updated-item (as-> (evaluate-operation item operation) $
+                           (if divide-by-3? (int (Math/floor (/ $ 3))) $)
+                           (mod $ total))
+             throw-to
+             (throws
+              (= 0 (mod updated-item divisible-by)))]
+         (assoc items throw-to (conj (items throw-to) updated-item))))
+     (assoc current-items i [])
+     (current-items i))))
 
 (defpure do-round
   {[(parse-operations example-input)
     (parse-divisible-by example-input)
     (parse-throw example-input)
+    true
     (parse-starting-items example-input)]
    [[[20 23 27 26] [2080 25 167 207 401 1046] [] []] '(2 4 3 5)]}
-  [operations divisible-bys throws items]
+  [operations divisible-bys throws divide-by-3? items]
   (let [intermediary (->>
              (map vector operations divisible-bys throws)
              (map-indexed #(apply vector %1 %2))
-             (reductions do-monkey items) 
+             (reductions (do-monkey divide-by-3? (apply * divisible-bys)) items) 
              )]
     [(last intermediary) (map-indexed #(count (%2 %1)) (drop-last intermediary))]))
 
-(defpure part1
-  {[example-input] 10605}
-  [s]
+(defpure solve
+  {[example-input 20 true] 10605}
+  {[example-input 10000 false] 2713310158}
+  [s rounds part1?]
   (let [f #(do-round
             (parse-operations s)
             (parse-divisible-by s)
             (parse-throw s)
+            part1?
             %)]
     (->>
      (reductions (fn [[state _] _] (f state))
                  (f (parse-starting-items s))
-                 (repeat 20 nil))
+                 (repeat rounds nil))
      (drop-last)
      (map second)
      (apply map +)
@@ -140,9 +143,8 @@ Monkey 3:
      (reduce *))))
 
 (comment
-  (part1 example-input)
-  (part1 (slurp "input/day11.txt"))
-
+  (solve (slurp "input/day11.txt") 20 true)
+  (solve (slurp "input/day11.txt") 10000 false)
   )
 
 (run-tests)
