@@ -28,21 +28,15 @@
 [1,[2,[3,[4,[5,6,0]]]],8,9]
 ")
 
-(defpure ordered?
-  {[1 2] true
-   [2 1] false
-   [2 2] :continue
-   [[3] [1 2]] true
-   [[1 2] [3]] false
-   [[1 2] [2 2]] true
-   [[2 2] [1 2]] false
-   [[1 2] [1 2]] :continue
-   [3 [1 2]] true
-   [[1 2] 3] false
-   [1 [1]] :continue
-   [[1] 1] :continue}
+(defpure compare-packets
+  {[[1 1 3 1 1] [1 1 5 1 1]] true
+   [[[1] [2 3 4]] [[1] 4]] true
+   [[9] [[8 7 6]]] false
+   [[[4 4] 4 4] [[4 4] 4 4 4]] true
+   [[7 7 7 7] [7 7 7]] false
+   [[] [3]] true
+   [[[[]]] [[]]] false}
   [left right]
-  (println "left: " left "right:" right)
   (cond
     (and (integer? left) (integer? right))
     (cond
@@ -51,22 +45,22 @@
       :else :continue)
 
     (and (vector? left) (vector? right))
-    (cond
-      (< (count left) (count right)) true
-      (> (count left) (count right)) false
-      :else
-      (let [v (->>
-               (map vector left right)
-               (map (fn [[l r]] (ordered? l r))) ;; supposed to compare recursively before looking at sizes
-               (filter #(not= :continue %))
-               (first))]
-        (if (nil? v) :continue v)))
+    (let [v (->>
+             (map vector left right)
+             (map (fn [[l r]] (compare-packets l r)))
+             (filter #(not= :continue %))
+             (first))]
+      (cond
+        (boolean? v) v
+        (< (count left) (count right)) true
+        (> (count left) (count right)) false
+        :else :continue))
 
     (vector? left)
-    (ordered? left [right])
+    (compare-packets left [right])
 
     :else
-    (ordered? [left] right)))
+    (compare-packets [left] right)))
 
 (defn- parse-input
   [s]
@@ -80,28 +74,17 @@
 (defpure part1 
   {[example-input] 13}
   [s]
-  (->> 
+  (->>
    (parse-input s)
-  ;;  (map #(ordered? (get % 0) (get % 1)))
-   
-   )
-
-  )
+   (map (fn [[a b]] (compare-packets a b)))
+   (keep-indexed (fn [i v] (if v i)))
+   (map #(+ 1 %))
+   (reduce +)
+   ))
 
 (comment
-  (ordered? [1 2] [1 2])
+  (part1 (slurp "input/day13.txt"))
   
-  (part1 example-input)
-  (ordered? [[1] [2 3 4]] [[1] 4])
-  (parse-input example-input)
-  
-  ()
-  (apply map vector [[1 2 3] [4 5 6]])
-  (map vector [1 2] [3 4])
-  
-  (some #(not= :continue %) [:continue false :continue])
-  
-  (list? [])
   )
 
 (run-tests)
