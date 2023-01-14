@@ -33,29 +33,55 @@
     [(bounds xs)
      (bounds ys)]))
 
-
+(defpure render-cave
+  {[(parse-input example-input)]
+   [[[0 0 0 0 0 0 0 0 0 0 0]
+     [0 0 0 0 0 0 0 0 0 1 0]
+     [0 0 0 0 0 0 0 0 0 1 0]
+     [0 0 0 0 0 0 1 0 0 1 0]
+     [0 0 0 0 0 0 1 0 0 1 0]
+     [0 0 0 0 1 1 1 0 0 1 0]
+     [0 0 0 0 0 0 0 0 0 1 0]
+     [0 0 0 0 0 0 0 0 0 1 0]
+     [0 0 0 0 0 0 0 0 0 1 0]
+     [0 0 0 0 1 1 1 1 1 1 0]
+     [0 0 0 0 1 0 0 0 0 0 0]
+     [0 0 0 0 0 0 0 0 0 0 0]]
+    7]}
+  "Return a minimal matrix for the cave and the x coordinate sand will be dropped at."
+  [lines]
+  (let [[[min-x max-x] [_ max-y]] (get-bounds lines)
+        width (+ (- max-x min-x) 3)
+        height (+ max-y 2)
+        lines
+        (->>
+         (map
+          (fn [line]
+            (->>
+             (map (fn [point]
+                    (update point 0 #(- (inc %) min-x)))
+                  line)
+             (partition 2 1)))
+          lines)
+         (apply concat))]
+    [(reduce
+      (fn [m [p0 p1]]
+        (matrix/fill p0 p1 1 m))
+      (matrix/create width height 0)
+      lines)
+     (- 501 min-x)]))
 
 (comment 
   (slurp "input/day14.txt")
   
-  (matrix/create 2 2 nil)
-  
-  (let [lines (parse-input example-input)
-        [[min-x max-x] [min-y max-y]] (get-bounds lines)
-        width (- max-x min-x)
-        height (- max-y min-y)
-        lines (map (fn [line]
-                     (map (fn [point] (update point 0  #(- % min-x)))
-                          line))
-                   lines)]
-    (matrix/create width height nil)
-    )
-  
-  (->> 
-   example-input 
+  (->>
+   example-input
    (parse-input)
-   (get-bounds)
+   (render-cave)
+   (matrix/transpose)
+   (matrix/to-string {0 \. 1 \# \+ \+})
+   (println)
    )
-)
+  )
 
 (run-tests)

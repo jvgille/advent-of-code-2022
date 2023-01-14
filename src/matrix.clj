@@ -61,17 +61,23 @@
   (into [] (repeat d0 (into [] (repeat d1 v)))))
 
 (defpure fill
-  {[[[0 0 0]
+  {[[1 1]
+    [0 2]
+    1
+    [[0 0 0]
      [0 0 0]
-     [0 0 0]]
-    [1 2]
-    [0 1]
-    1] [[0 0 0]
-        [1 1 0]
-        [1 1 0]]}
-  "Fill region of matrix with value v."
-  [m [x0 x1] [y0 y1] v]
-  nil)
+     [0 0 0]]]
+   [[0 1 1]
+    [0 1 1]
+    [0 0 0]]}
+  "Fill region (ends inclusive) of matrix with value v."
+  [[x0 y0] [x1 y1] v m]
+   (reduce
+    (fn [m k] (assoc-in m k v))
+    m
+    (for [x (range (min x0 x1) (inc (max x0 x1)))
+          y (range (min y0 y1) (inc (max y0 y1)))]
+      [x y])))
 
 (defn to-string
   "Return a multiline string representation of the matrix."
@@ -80,6 +86,6 @@
   ([element-to-representation m]
    (clojure.string/join "\n" (map #(clojure.string/join (map element-to-representation %)) m))))
 
-(comment 
+(comment
   (run-tests)
   )
