@@ -14,7 +14,7 @@
   throwable)
 
 (defn register-test [v inputs->output-map do-report]
-  ;; todo just filter on clojure/java etc
+  ;; todo just filter on clojure/java etc (or just take first/last n lines?)
   (let [ns-name (name (ns-name (:ns (meta v))))]
     (alter-meta! v assoc :test
                  #(doseq [[inputs output] inputs->output-map]

@@ -60,6 +60,19 @@
   [d0 d1 v]
   (into [] (repeat d0 (into [] (repeat d1 v)))))
 
+(defpure fill
+  {[[[0 0 0]
+     [0 0 0]
+     [0 0 0]]
+    [1 2]
+    [0 1]
+    1] [[0 0 0]
+        [1 1 0]
+        [1 1 0]]}
+  "Fill region of matrix with value v."
+  [m [x0 x1] [y0 y1] v]
+  nil)
+
 (defn to-string
   "Return a multiline string representation of the matrix."
   ([m]

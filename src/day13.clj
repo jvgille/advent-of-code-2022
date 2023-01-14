@@ -77,7 +77,7 @@
   (->>
    (parse-input s)
    (map (fn [[a b]] (compare-packets a b)))
-   (keep-indexed (fn [i v] (if v i)))
+   (keep-indexed (fn [i v] (if v i nil)))
    (map inc)
    (reduce +)))
 
@@ -88,7 +88,7 @@
    (parse-input s)
    (apply concat [[[2]] [[6]]])
    (sort compare-packets)
-   (keep-indexed (fn [i v] (if (#{[[2]] [[6]]} v) i)))
+   (keep-indexed (fn [i v] (if (#{[[2]] [[6]]} v) i nil)))
    (map inc)
    (reduce *)))
 
