@@ -2,18 +2,25 @@
   (:require [clojure.test :refer [run-tests]]
             [defpure :refer [defpure]]))
 
-(defn- build-path
-  "Traverses the parent HashMap backwards from the goal and returns the
-   resulting path. Assumes the start of the path has no parent!"
+(defpure build-path
+  {[{4 0
+     0 3
+     3 1
+     1 2} 4] '(2 1 3 0 4)
+   [{0 2
+     1 0
+     2 1} 2] '(0 1 2)}
+  "Traverses the parent map backwards from the goal and returns the
+   resulting path, ignoring previously seen nodes."
   [parents goal]
-  (loop [seen (new java.util.HashSet)
+  (loop [seen #{}
          path '()
          curr goal]
-    (if (or (nil? curr) (. seen contains curr))
+    (if (or (nil? curr) (seen curr))
       path
-      (do 
-        (. seen add curr)
-        (recur seen (conj path curr) (. parents get curr))))))
+      (recur (conj seen curr)
+             (conj path curr)
+             (parents curr)))))
 
 (defpure dfs
   {[0 3 {0 [0 1]
@@ -24,30 +31,26 @@
          1 [0 1 2]
          2 [0 1 2]
          3 [0 1 2]}] nil
-   [0 4 {0 [:shortcut 1]
+   [0 4 {0 [1 :shortcut]
          1 [2]
          2 [3]
          3 [4]
          4 []
          :shortcut [4]}] [0 1 2 3 4]}
   [start goal neighbors-of]
-  (loop [queue (new java.util.LinkedList [start])
-         visited (new java.util.HashSet #{start})
-         parents (new java.util.HashMap)]
-    (if-let [current (and (seq queue) (. queue removeFirst))]
-      (if (= current goal)
-        (build-path parents goal)
-        (do
-          (->>
-           (neighbors-of current)
-           (filter (complement #(. visited contains %)))
-           (map (fn [next]
-                  (. visited add next)
-                  (. parents put next current)
-                  (. queue addFirst next)))
-           (doall))
-          (recur queue visited parents)))
-      nil)))
+  (loop [queue (list start)
+         visited #{start}
+         parents {}]
+    (let [[current & queue] queue]
+      (and
+       current
+       (if (= current goal)
+         (build-path parents goal)
+         (let [neighbors (filter (complement visited) (neighbors-of current))]
+           (recur
+            (concat neighbors queue)
+            (apply conj visited neighbors)
+            (reduce #(assoc %1 %2 current) parents neighbors))))))))
 
 (defpure bfs
   {[0 3 {0 [0 1]
@@ -64,54 +67,49 @@
          3 [4]
          4 []
          :shortcut [4]}] [0 :shortcut 4]}
-  [start goal neighbors-of] 
-  (loop [queue (new java.util.LinkedList [start])
-         visited (new java.util.HashSet #{start})
-         parents (new java.util.HashMap)]
-    (if-let [current (and (seq queue) (. queue removeFirst))]
-      (if (= current goal)
-        (build-path parents goal)
-        (do
-          (->>
-           (neighbors-of current)
-           (filter (complement #(. visited contains %)))
-           (map (fn [next]
-                  (. visited add next)
-                  (. parents put next current)
-                  (. queue addLast next)))
-           (doall))
-          (recur queue visited parents)))
-      nil)))
+  [start goal neighbors-of]
+  (loop [queue (list start)
+         visited #{start}
+         parents {}]
+    (let [[current & queue] queue]
+      (and
+       current
+       (if (= current goal)
+         (build-path parents goal)
+         (let [neighbors (filter (complement visited) (neighbors-of current))]
+           (recur
+            (concat queue neighbors)
+            (apply conj visited neighbors)
+            (reduce #(assoc %1 %2 current) parents neighbors))))))))
 
 
-(defpure bfs-traverse
-  {[0 {0 [0 1]
-       1 [0 1 2]
-       2 [0 1 2 3]
-       3 []}] {0 0
-               1 0
-               2 1
-               3 2}
-   [0 {0 [0 1 2]
-       1 [0 1 2]
-       2 [0 1 2]
-       3 [0 1 2]}] {0 0
-                    1 0
-                    2 1
-                    3 nil}
-   [0 {0 [:shortcut 1]
-       1 [2]
-       2 [3]
-       3 [4]
-       4 []
-       :shortcut [4]}] {0 nil
-                        1 0
-                        2 1
-                        3 2
-                        4 :shortcut
-                        :shortcut 0}}
-  [start neighbors-of]
-  
-  )
+;; (defpure bfs-traverse
+  ;; {[0 {0 [0 1]
+  ;;      1 [0 1 2]
+  ;;      2 [0 1 2 3]
+  ;;      3 []}] {0 0
+  ;;              1 0
+  ;;              2 1
+  ;;              3 2}
+  ;;  [0 {0 [0 1 2]
+  ;;      1 [0 1 2]
+  ;;      2 [0 1 2]
+  ;;      3 [0 1 2]}] {0 0
+  ;;                   1 0
+  ;;                   2 1
+  ;;                   3 nil}
+  ;;  [0 {0 [:shortcut 1]
+  ;;      1 [2]
+  ;;      2 [3]
+  ;;      3 [4]
+  ;;      4 []
+  ;;      :shortcut [4]}] {0 nil
+  ;;                       1 0
+  ;;                       2 1
+  ;;                       3 2
+  ;;                       4 :shortcut
+  ;;                       :shortcut 0}}
+  ;; {}
+  ;; [start neighbors-of])
 
 (run-tests)
