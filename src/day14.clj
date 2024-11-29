@@ -82,6 +82,28 @@
    (matrix/to-string {0 \. 1 \# \+ \+})
    (println)
    )
+  
+  ;; recursive algorithm
+  ;; fill in the starting point
+  ;; to fill in a point p (x,y),
+    ;; if p is outside the map, abort and return number of filled in points
+    ;; if p is already filled in, do nothing
+    ;; otherwise first fill in points (x,y-1),(x-1,y-1),(x+1,y-1),
+    ;; then fill in p
+  ;;
+  
+  ;; (defn fill
+  ;;   [m stack]
+  ;;   (if (empty? stack)
+  ;;     m
+  ;;     (let [[p & stack] stack]
+  ;;       (cond
+  ;;         (outside-map? m p) m
+  ;;         (filled-in? m p) (fill m stack)
+  ;;         :default (->
+  ;;                   (fill m (concat (children-of p) stack))
+  ;;                   (put p \#))))))
+  
   )
 
 (run-tests)
